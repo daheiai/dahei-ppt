@@ -1,40 +1,41 @@
 # dahei-ppt
 
-This repository is a Codex skill for generating recording-ready HTML slides.
+这是一个给 AI 使用的 Codex skill，用来生成适合录屏的视频演示 HTML。
 
-Use this skill when the user wants a PPT-like visual, video slide, explainer frame, benchmark table, comparison page, hero page, or any single-file HTML presentation for screen recording.
+当用户需要 PPT 风格画面、视频讲解页、对比页、数据表、主视觉页、网页幻灯片时，优先使用这个 skill。
 
-## How To Use
+## 使用方式
 
-1. Read `SKILL.md` first.
-2. Read `reference/design_system.md` before writing HTML.
-3. Generate one self-contained `.html` file in the user's working directory.
-4. Name files with numeric prefixes, such as `01-title.html`, `02-benchmark.html`.
-5. Keep the page 3:2, fixed-stage, and directly openable in a browser.
+1. 先读 `SKILL.md`。
+2. 写 HTML 前读 `reference/design_system.md`。
+3. 在用户指定的工作目录里生成单文件 `.html`。
+4. 文件名使用数字前缀，例如 `01-主题.html`、`02-对比.html`。
+5. 页面必须是 3:2 固定画幅，可以直接用浏览器打开。
 
-## Non-Negotiables
+## 硬规则
 
-- One page should communicate one clear idea.
-- Use the house style: warm off-white background, deep black text, small orange emphasis.
-- Make text large enough for mobile video viewing.
-- Reserve the bottom area for subtitles; place the visual center slightly above mathematical center.
-- Avoid bottom captions, footer notes, page numbers, and visible keyboard hints.
-- Keep keyboard control available in code: right arrow/space/Enter for next, left arrow/Backspace for previous.
-- Prefer fewer words. Delete explanation text unless it changes viewer understanding.
-- For hero pages, keep one dominant center and treat everything else as atmosphere.
-- If a positioned element uses `transform: translate(...)`, preserve that transform in animations or split positioning and animation into wrapper/inner elements.
+- 一页只讲清楚一个重点。
+- 使用固定视觉风格：米白背景、深黑文字、少量橙色强调。
+- 字要足够大，面向手机和视频观看。
+- 底部预留字幕安全区，主视觉默认略微上移。
+- 不在画面里放页码、操作提示、调试文字、作者注释。
+- 代码里保留键盘控制：右箭头/空格/Enter 下一步，左箭头/Backspace 上一步。
+- 默认少写字，删掉不影响理解的说明文字。
+- 主视觉页只保留一个中心主体，其他元素作为氛围陪衬。
+- 如果元素用 `transform: translate(...)` 定位，动画时要保留原始 transform，或拆成外层定位、内层动画。
 
-## Output Shape
+## 输出形式
 
-The default output is a single HTML file with embedded CSS and JavaScript:
+默认输出一个自包含 HTML 文件：
 
-- `.stage` uses a 3:2 aspect ratio.
-- The page works offline.
-- No build step is required.
-- No external runtime is required.
+- 使用 `.stage` 作为 3:2 画面容器。
+- CSS 和 JavaScript 直接写在 HTML 里。
+- 可以离线打开。
+- 不需要构建步骤。
+- 不依赖外部运行时。
 
-## Reference Files
+## 参考文件
 
-- `SKILL.md`: workflow, page types, practical rules, animation pitfalls.
-- `reference/design_system.md`: colors, sizing, layout, animation conventions.
-- `reference/example_template.html`: reusable starter structure.
+- `SKILL.md`：完整工作流、页面类型、实战规则、动画避坑。
+- `reference/design_system.md`：配色、字号、布局、动画规范。
+- `reference/example_template.html`：可复用的基础模板。
