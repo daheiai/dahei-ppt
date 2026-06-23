@@ -1,0 +1,278 @@
+:root {
+  color: #1d1b18;
+  background: #f7f4ed;
+  font-family:
+    Inter,
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 1080px;
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, rgba(239, 102, 57, 0.08), transparent 32%),
+    #f7f4ed;
+}
+
+button {
+  font: inherit;
+}
+
+.studio-shell {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.project-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  border-right: 1px solid #ddd4c6;
+  background: rgba(255, 252, 246, 0.82);
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 8px;
+  background: #1d1b18;
+  color: #fff8ea;
+  font-weight: 800;
+}
+
+.brand-block h1,
+.workspace-header h2,
+.panel h2 {
+  margin: 0;
+}
+
+.brand-block h1 {
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.brand-block p,
+.muted,
+.status-error,
+.project-item small,
+.flow-list p,
+.panel-heading span,
+.script-surface p {
+  margin: 0;
+  color: #70685d;
+}
+
+.panel {
+  border: 1px solid #ded6ca;
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.project-panel {
+  flex: 1;
+  overflow: hidden;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5ded4;
+}
+
+.panel-heading h2 {
+  font-size: 15px;
+}
+
+.panel-heading span {
+  font-size: 13px;
+}
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.project-item {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #1d1b18;
+  text-align: left;
+  cursor: pointer;
+}
+
+.project-item:hover,
+.project-item.is-active {
+  border-color: #ef6639;
+  background: #fff4eb;
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 28px;
+}
+
+.workspace-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #ef6639;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.workspace-header h2 {
+  font-size: 34px;
+  line-height: 1.08;
+}
+
+.format-pill {
+  padding: 9px 12px;
+  border: 1px solid #d9d0c3;
+  border-radius: 8px;
+  color: #464039;
+  background: #fffaf0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.work-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.85fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.script-panel {
+  min-height: 540px;
+}
+
+.script-surface {
+  display: grid;
+  min-height: 480px;
+  padding: 28px;
+  place-items: center;
+}
+
+.script-surface p {
+  max-width: 680px;
+  font-size: 28px;
+  font-weight: 750;
+  line-height: 1.28;
+  color: #1d1b18;
+}
+
+.flow-list {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 18px;
+  list-style: none;
+}
+
+.flow-list li {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.flow-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  border-radius: 999px;
+}
+
+.tone-green {
+  background: #2f9a5f;
+}
+
+.tone-red {
+  background: #d94d3f;
+}
+
+.tone-orange {
+  background: #ef9b2d;
+}
+
+.tone-purple {
+  background: #7961c6;
+}
+
+.flow-list strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.flow-list p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.status-error {
+  color: #ba2d25;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  body {
+    min-width: 0;
+  }
+
+  .studio-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .project-rail {
+    border-right: 0;
+    border-bottom: 1px solid #ddd4c6;
+  }
+
+  .work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-header {
+    align-items: start;
+    flex-direction: column;
+  }
+}
