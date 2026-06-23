@@ -1,0 +1,86 @@
+video:
+  title: segment_01 动画片段
+  format: 3:2
+  fps: 60
+  width: 3840
+  height: 2560
+pages:
+  - id: page_01
+    source: 如果你的项目要求本身就比较高
+    keep_reason: 它建立了成本讨论的前提。
+    purpose: 让观众先理解成本敏感性来自项目要求。
+    visual_subject: 项目要求
+    semantic_type: core_claim
+    template: big_claim
+    text:
+      title: 项目要求越高，成本越关键
+    duration: 3
+    motion: 淡入
+    exit_policy: fade
+  - id: page_02
+    source: 跑1小时GPT大概能用10块钱的话，Claude得10~40块
+    keep_reason: 这是核心价格对比。
+    purpose: 让观众看到两种模型的小时成本差异。
+    visual_subject: 10 元/小时 vs 10-40 元/小时
+    semantic_type: number_argument
+    template: compare
+    text:
+      title: 同样跑 1 小时
+      labels:
+        - GPT：约 10 元
+        - Claude：10-40 元
+    duration: 4
+    motion: 对比
+    exit_policy: fade
+    numbers:
+      - label: GPT
+        value: 10
+        unit: 元/小时
+      - label: Claude
+        value: 10-40
+        unit: 元/小时
+  - id: page_03
+    source: 上个月总共大概花了4000块
+    keep_reason: 4000 元是后续放大计算的真实基准。
+    purpose: 把用户已有支出转成可感知的金额尺度。
+    visual_subject: 4000 元到 16000 元
+    semantic_type: number_argument
+    template: number_scale
+    text:
+      title: 4000 元 × 4 = 16000 元
+    duration: 4
+    motion: 放大
+    exit_policy: fade
+    calculation:
+      expression: 4000 × 4 = 16000
+      meaning: Claude 高价区间会把月成本放大到约 16000 元。
+  - id: page_04
+    source: 这个价格我还能承受的话，Claude翻个4倍的价格我就承受不了
+    keep_reason: 它给出选择边界。
+    purpose: 让观众看到成本从可承受到越界的变化。
+    visual_subject: 预算承受边界
+    semantic_type: comparison_judgment
+    template: threshold_line
+    text:
+      title: 4 倍价格，越过承受边界
+    duration: 4
+    motion: 阈值推进
+    exit_policy: fade
+  - id: page_05
+    source: GPT在编程任务方面的能力可能还会更好，很难不选择它
+    keep_reason: 它完成最终选择判断。
+    purpose: 把成本和能力合并成结论。
+    visual_subject: GPT
+    semantic_type: closing_claim
+    template: quote_punch
+    text:
+      title: 成本更稳，编程也强
+      subtitle: 很难不选择 GPT
+    duration: 3
+    motion: 聚焦
+    exit_policy: fade
+    decision:
+      winner: GPT
+      reasons:
+        - 成本更可控
+        - 编程能力足够强

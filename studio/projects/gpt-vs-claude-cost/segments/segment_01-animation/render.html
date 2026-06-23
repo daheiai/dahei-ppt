@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=3840, height=2560">
+    <title>segment_01 动画片段</title>
+    <style>
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 3840px;
+  height: 2560px;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: #faf9f6;
+  color: #1a1a1a;
+  font-family: "Noto Sans JP", Inter, sans-serif;
+}
+
+#root {
+  position: relative;
+  width: 3840px;
+  height: 2560px;
+  overflow: hidden;
+  background: #faf9f6;
+}
+
+.clip {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-items: center;
+  padding: 9% 10% 12%;
+  opacity: 0;
+}
+
+.clip.active {
+  opacity: 1;
+}
+
+.page-inner {
+  display: grid;
+  gap: 108px;
+}
+
+h1 {
+  max-width: 86%;
+  margin: 0;
+  font-size: 176px;
+  line-height: 0.98;
+  letter-spacing: 0;
+  font-weight: 850;
+}
+
+p {
+  margin: 0;
+  color: #6f6a61;
+  font-size: 72px;
+  line-height: 1.18;
+  letter-spacing: 0;
+  font-weight: 650;
+}
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 82px;
+  max-width: 86%;
+}
+
+.compare-card {
+  min-height: 520px;
+  border: 6px solid rgba(26, 26, 26, 0.14);
+  border-radius: 8px;
+  padding: 96px;
+  display: grid;
+  align-content: center;
+  gap: 42px;
+  background: rgba(255, 255, 255, 0.44);
+}
+
+.compare-card strong {
+  color: #ff6b00;
+  font-size: 132px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.compare-card span {
+  color: #6f6a61;
+  font-size: 58px;
+  line-height: 1.18;
+}
+
+.threshold {
+  width: min(86%, 2400px);
+  display: grid;
+  gap: 76px;
+}
+
+.threshold-track {
+  height: 54px;
+  border-radius: 999px;
+  background: rgba(26, 26, 26, 0.14);
+}
+
+.threshold-fill {
+  width: 74%;
+  height: 100%;
+  border-radius: inherit;
+  background: #ff6b00;
+}
+
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-width="3840"
+      data-height="2560"
+      data-duration="18"
+      data-fps="60"
+    >
+      <section id="page_01" class="clip" data-start="0" data-duration="3" data-track-index="1">
+        <div class="page-inner big_claim">
+          <h1>项目要求越高，成本越关键</h1>
+        </div>
+      </section>
+      <section id="page_02" class="clip" data-start="3" data-duration="4" data-track-index="1">
+        <div class="page-inner compare">
+          <h1>同样跑 1 小时</h1>
+          <div class="compare-grid">
+            <div class="compare-card" data-label="GPT：约 10 元">
+              <span>GPT</span>
+              <strong>约 10 元</strong>
+            </div>
+            <div class="compare-card" data-label="Claude：10-40 元">
+              <span>Claude</span>
+              <strong>10-40 元</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="page_03" class="clip" data-start="7" data-duration="4" data-track-index="1">
+        <div class="page-inner number_scale">
+          <h1>4000 元 × 4 = 16000 元</h1>
+        </div>
+      </section>
+      <section id="page_04" class="clip" data-start="11" data-duration="4" data-track-index="1">
+        <div class="page-inner threshold_line">
+          <div class="threshold">
+            <h1>4 倍价格，越过承受边界</h1>
+            <div class="threshold-track"><div class="threshold-fill"></div></div>
+          </div>
+        </div>
+      </section>
+      <section id="page_05" class="clip" data-start="15" data-duration="3" data-track-index="1">
+        <div class="page-inner quote_punch">
+          <h1>成本更稳，编程也强</h1>
+          <p>很难不选择 GPT</p>
+        </div>
+      </section>
+    </div>
+    <script>
+
+window.__renderSeek = function (time) {
+  var clips = Array.from(document.querySelectorAll(".clip"));
+  clips.forEach(function (clip) {
+    var start = Number(clip.getAttribute("data-start") || "0");
+    var duration = Number(clip.getAttribute("data-duration") || "0");
+    var end = start + duration;
+    var active = time >= start && time <= end;
+    clip.classList.toggle("active", active);
+  });
+};
+
+window.__timelines = window.__timelines || {};
+window.__timelines["main"] = {
+  duration: function () {
+    return 18;
+  },
+  pause: function () {
+    return this;
+  },
+  seek(time) {
+    window.__renderSeek(Number(time) || 0);
+    return this;
+  }
+};
+
+window.__renderSeek(0);
+
+    </script>
+  </body>
+</html>
