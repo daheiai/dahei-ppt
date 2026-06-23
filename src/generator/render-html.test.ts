@@ -46,6 +46,9 @@ describe("generateRenderHtml", () => {
     const html = generateRenderHtml(plan);
 
     expect(html).toContain('data-composition-id="main"');
+    expect(html).toContain(`id="root"
+      data-composition-id="main"
+      data-start="0"`);
     expect(html).toContain('data-width="3840"');
     expect(html).toContain('data-height="2560"');
     expect(html).toContain('data-duration="7"');

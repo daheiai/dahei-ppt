@@ -64,11 +64,11 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<Cl
     }
 
     if (command === "render") {
-      await renderCommand(commandArgs);
+      const result = await renderCommand(commandArgs);
 
       return {
         exitCode: 0,
-        stdout: "",
+        stdout: `Rendered MP4: ${result.outputPath}\n`,
         stderr: ""
       };
     }

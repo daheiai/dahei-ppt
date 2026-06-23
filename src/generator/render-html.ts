@@ -21,6 +21,7 @@ ${renderStyle(plan)}
     <div
       id="root"
       data-composition-id="main"
+      data-start="0"
       data-width="${plan.video.width}"
       data-height="${plan.video.height}"
       data-duration="${totalDuration}"
@@ -101,7 +102,7 @@ body {
 body {
   background: #faf9f6;
   color: #1a1a1a;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Noto Sans JP", Inter, sans-serif;
 }
 
 #root {
