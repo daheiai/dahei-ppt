@@ -1,13 +1,28 @@
 import { useEffect, useState } from "react";
-import { fetchProjects, type StudioProject } from "./lib/projects-api.js";
+import { VisualRoutingEditor } from "./components/VisualRoutingEditor.js";
+import {
+  createAnimationSegment,
+  fetchProjectDetail,
+  fetchProjects,
+  saveVisualRouting,
+  type ProjectDetail,
+  type StudioProject,
+  type VisualRoutingSegment
+} from "./lib/projects-api.js";
 import "./styles.css";
 
 type LoadState = "loading" | "ready" | "error";
+type SaveState = "idle" | "saving";
 
 export function App() {
   const [projects, setProjects] = useState<StudioProject[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [projectLoadState, setProjectLoadState] = useState<LoadState>("ready");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectDetail, setProjectDetail] = useState<ProjectDetail | null>(null);
+  const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [actionStatus, setActionStatus] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -33,7 +48,99 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setProjectDetail(null);
+      setSelectedSegmentId(null);
+      return;
+    }
+
+    let active = true;
+    setProjectLoadState("loading");
+    setActionStatus("");
+
+    void fetchProjectDetail(selectedProjectId)
+      .then((detail) => {
+        if (!active) {
+          return;
+        }
+
+        setProjectDetail(detail);
+        setSelectedSegmentId(detail.visualRouting?.segments[0]?.id ?? null);
+        setProjectLoadState("ready");
+      })
+      .catch(() => {
+        if (active) {
+          setProjectLoadState("error");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedProjectId]);
+
   const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
+  const scriptText = projectDetail?.script.trim() ? projectDetail.script : "暂无讲稿";
+
+  function updateSegment(segmentId: string, update: Partial<VisualRoutingSegment>): void {
+    setProjectDetail((detail) => {
+      if (!detail?.visualRouting) {
+        return detail;
+      }
+
+      return {
+        ...detail,
+        visualRouting: {
+          segments: detail.visualRouting.segments.map((segment) =>
+            segment.id === segmentId ? { ...segment, ...update, user_status: update.user_status ?? "edited" } : segment
+          )
+        }
+      };
+    });
+    setActionStatus("存在未保存修改");
+  }
+
+  async function persistVisualRouting(): Promise<void> {
+    if (!projectDetail?.visualRouting) {
+      return;
+    }
+
+    setSaveState("saving");
+    setActionStatus("保存中");
+
+    try {
+      const visualRouting = await saveVisualRouting(projectDetail.id, projectDetail.visualRouting);
+      setProjectDetail({ ...projectDetail, visualRouting });
+      setActionStatus("已保存");
+    } catch {
+      setActionStatus("保存失败");
+    } finally {
+      setSaveState("idle");
+    }
+  }
+
+  async function enterAnimationProduction(segmentId: string): Promise<void> {
+    if (!projectDetail) {
+      return;
+    }
+
+    setSaveState("saving");
+    setActionStatus("创建中");
+
+    try {
+      const segment = await createAnimationSegment(projectDetail.id, segmentId);
+      setProjectDetail({
+        ...projectDetail,
+        segments: [...projectDetail.segments.filter((item) => item.id !== segment.id), segment]
+      });
+      setActionStatus("动画片段已创建");
+    } catch {
+      setActionStatus("创建失败");
+    } finally {
+      setSaveState("idle");
+    }
+  }
 
   return (
     <main className="studio-shell">
@@ -74,7 +181,7 @@ export function App() {
         <div className="workspace-header">
           <div>
             <p className="eyebrow">脚本到动画</p>
-            <h2>{selectedProject?.title ?? "选择项目"}</h2>
+            <h2>{projectDetail?.title ?? selectedProject?.title ?? "选择项目"}</h2>
           </div>
           <div className="format-pill">3840 × 2560 · 60fps</div>
         </div>
@@ -83,12 +190,10 @@ export function App() {
           <section className="panel script-panel" aria-labelledby="script-panel-title">
             <div className="panel-heading">
               <h2 id="script-panel-title">讲稿</h2>
-              <span>原文分段</span>
+              <span>{projectLoadState === "loading" ? "读取中" : "原文"}</span>
             </div>
             <div className="script-surface">
-              <p>
-                把完整文案放进这里后，Studio 会进入视觉分区：绿色出镜，红色动画，黄色网络素材，紫色拍摄。
-              </p>
+              <p>{scriptText}</p>
             </div>
           </section>
 
@@ -129,6 +234,17 @@ export function App() {
             </ol>
           </section>
         </div>
+
+        <VisualRoutingEditor
+          actionStatus={actionStatus}
+          onChangeSegment={updateSegment}
+          onCreateSegment={(segmentId) => void enterAnimationProduction(segmentId)}
+          onSave={() => void persistVisualRouting()}
+          onSelectSegment={setSelectedSegmentId}
+          project={projectDetail}
+          saving={saveState === "saving"}
+          selectedSegmentId={selectedSegmentId}
+        />
       </section>
     </main>
   );
