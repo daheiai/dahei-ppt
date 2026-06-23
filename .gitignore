@@ -1,1 +1,19 @@
 .DS_Store
+
+# Generated video artifacts
+*.mp4
+*.mov
+*.m4v
+*.webm
+*.avi
+
+# Render previews and frame sequences
+contact-sheet*.jpg
+contact-sheet*.jpeg
+contact-sheet*.png
+frames/
+render_frames/
+outputs/
+exports/
+tmp/
+cache/
