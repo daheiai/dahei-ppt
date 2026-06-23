@@ -58,7 +58,7 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<Cl
 
       return {
         exitCode: 0,
-        stdout: `Created slides HTML: ${result.slidesHtmlPath}\n`,
+        stdout: `Created HTML: ${result.slidesHtmlPath}\nCreated render HTML: ${result.renderHtmlPath}\n`,
         stderr: ""
       };
     }

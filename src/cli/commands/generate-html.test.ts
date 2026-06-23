@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { ProductionPlan } from "../../schema/index.js";
 import { writeProductionPlan } from "../../projects/project-files.js";
-import { slidesHtmlPath } from "../../projects/project-paths.js";
+import { renderHtmlPath, slidesHtmlPath } from "../../projects/project-paths.js";
 import { generateHtmlCommand } from "./generate-html.js";
 
 const plan: ProductionPlan = {
@@ -33,13 +33,15 @@ const plan: ProductionPlan = {
 };
 
 describe("generateHtmlCommand", () => {
-  it("writes slides.html from a segment production plan", async () => {
+  it("writes slides.html and render.html from a segment production plan", async () => {
     const segmentRoot = await mkdtemp(join(tmpdir(), "dahei-ppt-html-"));
     await writeProductionPlan(segmentRoot, plan);
 
     const result = await generateHtmlCommand(["--segment", segmentRoot]);
 
     expect(result.slidesHtmlPath).toBe(slidesHtmlPath(segmentRoot));
+    expect(result.renderHtmlPath).toBe(renderHtmlPath(segmentRoot));
     expect(await readFile(slidesHtmlPath(segmentRoot), "utf8")).toContain("项目要求越高，成本越关键");
+    expect(await readFile(renderHtmlPath(segmentRoot), "utf8")).toContain('data-composition-id="main"');
   });
 });
