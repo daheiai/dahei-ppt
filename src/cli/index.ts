@@ -1,4 +1,5 @@
 import { pathToFileURL } from "node:url";
+import { checkCommand } from "./commands/check.js";
 import { createSegmentCommand } from "./commands/create-segment.js";
 import { generateHtmlCommand } from "./commands/generate-html.js";
 import { initProjectCommand } from "./commands/init-project.js";
@@ -73,6 +74,21 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<Cl
       };
     }
 
+    if (command === "check") {
+      const result = await checkCommand(commandArgs);
+      const output = result.ok
+        ? "Checks passed\n"
+        : `Checks found ${result.issueCount} issue(s):\n${result.issues
+            .map((issue) => `- [${issue.severity}] ${issue.code} ${issue.path}: ${issue.message}`)
+            .join("\n")}\n`;
+
+      return {
+        exitCode: result.ok ? 0 : 1,
+        stdout: output,
+        stderr: ""
+      };
+    }
+
     return {
       exitCode: 1,
       stdout: "",
@@ -96,7 +112,8 @@ function helpText(): string {
     "  plan-routing --project <project>",
     "  create-segment --project <project> --segment <segment-id>",
     "  generate-html --segment <segment>",
-    "  render --segment <segment>"
+    "  render --segment <segment>",
+    "  check --segment <segment>"
   ].join("\n");
 }
 
