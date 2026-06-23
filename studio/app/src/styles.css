@@ -422,6 +422,90 @@ button {
   padding: 18px;
 }
 
+.production-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.production-panel {
+  min-height: 300px;
+}
+
+.page-plan-list {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.page-plan-item {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 48px;
+  gap: 12px;
+  align-items: start;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid #e0d7ca;
+  border-radius: 8px;
+  background: #fffdf8;
+}
+
+.page-plan-item span,
+.page-plan-item small {
+  color: #ef6639;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.page-plan-item p {
+  margin: 4px 0 0;
+  color: #70685d;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.markdown-plan {
+  min-height: 240px;
+  padding: 16px;
+  white-space: pre-wrap;
+  color: #464039;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.html-preview-panel,
+.render-panel {
+  grid-column: 2;
+}
+
+.preview-frame-wrap {
+  display: grid;
+  min-height: 300px;
+  padding: 14px;
+  place-items: center;
+}
+
+.preview-frame-wrap p {
+  margin: 0;
+  color: #70685d;
+}
+
+.preview-frame {
+  width: min(100%, 420px);
+  aspect-ratio: 3 / 2;
+  border: 1px solid #d7cec0;
+  border-radius: 8px;
+  background: #fffdf8;
+}
+
+.render-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px;
+}
+
 @media (max-width: 900px) {
   body {
     min-width: 0;
@@ -442,6 +526,15 @@ button {
 
   .routing-grid {
     grid-template-columns: 1fr;
+  }
+
+  .production-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .html-preview-panel,
+  .render-panel {
+    grid-column: auto;
   }
 
   .workspace-header {

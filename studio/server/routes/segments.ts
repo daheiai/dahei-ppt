@@ -1,7 +1,14 @@
-import { readdir } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { readVisualRouting } from "../../../src/projects/project-files.js";
-import { projectRootPath, segmentRootPath, segmentsRootPath } from "../../../src/projects/project-paths.js";
+import { readProductionPlan, readVisualRouting } from "../../../src/projects/project-files.js";
+import {
+  productionPlanMarkdownPath,
+  projectRootPath,
+  renderHtmlPath,
+  segmentRootPath,
+  segmentsRootPath,
+  slidesHtmlPath
+} from "../../../src/projects/project-paths.js";
 import {
   ApiError,
   assertRecord,
@@ -29,6 +36,25 @@ export async function handleSegmentRoute(
     return { status: 201, body: { segmentId, segmentRoot } };
   }
 
+  const detailMatch = pathname.match(/^\/api\/projects\/([^/]+)\/segments\/([^/]+)$/);
+  if (detailMatch && method === "GET") {
+    const projectRoot = resolveProjectRoot(context.projectsDir, detailMatch[1]!);
+    const segmentId = safePathPart(decodeURIComponent(detailMatch[2]!), "segment id");
+    const segmentRoot = await resolveSegmentRoot(projectRoot, segmentId);
+
+    return {
+      status: 200,
+      body: {
+        id: segmentId,
+        root: segmentRoot,
+        productionPlanMarkdown: await readOptionalText(productionPlanMarkdownPath(segmentRoot)),
+        productionPlan: await readOptionalProductionPlan(segmentRoot),
+        slidesHtml: await readOptionalText(slidesHtmlPath(segmentRoot)),
+        hasRenderHtml: await pathExists(renderHtmlPath(segmentRoot))
+      }
+    };
+  }
+
   const actionMatch = pathname.match(/^\/api\/projects\/([^/]+)\/segments\/([^/]+)\/(generate-html|render)$/);
   if (actionMatch && method === "POST") {
     const projectRoot = resolveProjectRoot(context.projectsDir, actionMatch[1]!);
@@ -36,12 +62,37 @@ export async function handleSegmentRoute(
     const segmentRoot = await resolveSegmentRoot(projectRoot, segmentId);
     const command = actionMatch[3]!;
 
-    await context.commandRunner.run([command, "--segment", segmentRoot]);
+    const result = await context.commandRunner.run([command, "--segment", segmentRoot]);
 
-    return { status: 200, body: { ok: true, segmentId, segmentRoot } };
+    return { status: 200, body: { ok: true, segmentId, segmentRoot, stdout: result.stdout, stderr: result.stderr } };
   }
 
   return undefined;
+}
+
+async function readOptionalText(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+async function readOptionalProductionPlan(segmentRoot: string): Promise<unknown> {
+  try {
+    return await readProductionPlan(segmentRoot);
+  } catch {
+    return null;
+  }
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function resolveProjectRoot(projectsDir: string, rawProjectId: string): string {

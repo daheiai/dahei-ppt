@@ -87,6 +87,32 @@ describe("studio local api", () => {
       ["render", "--segment", join(projectsDir, "sample", "segments", "segment_01-animation")]
     ]);
   });
+
+  it("returns segment production detail and slides html", async () => {
+    const projectsDir = join(tmpdir(), `dahei-ppt-studio-detail-${Date.now()}`);
+    const context = createTestContext(projectsDir);
+
+    await requestJson(context, "/api/projects", {
+      method: "POST",
+      body: { id: "sample", title: "Sample Video" }
+    });
+    await requestJson(context, "/api/projects/sample/visual-routing", {
+      method: "PUT",
+      body: { visualRouting: sampleRoutingPlan() }
+    });
+    await requestJson(context, "/api/projects/sample/segments", {
+      method: "POST",
+      body: { segmentId: "segment_01" }
+    });
+
+    const detail = await requestJson(context, "/api/projects/sample/segments/segment_01");
+
+    expect(detail).toMatchObject({
+      id: "segment_01",
+      productionPlanMarkdown: expect.any(String),
+      slidesHtml: null
+    });
+  });
 });
 
 async function requestJson(
@@ -114,7 +140,12 @@ function createTestContext(projectsDir: string, commandRunner?: CommandRunner): 
     commandRunner:
       commandRunner ??
       ({
-        async run() {
+        async run(args) {
+          if (args[0] === "create-segment") {
+            const { createSegmentCommand } = await import("../../src/cli/commands/create-segment.js");
+            await createSegmentCommand(args.slice(1));
+          }
+
           return { stdout: "", stderr: "" };
         }
       } satisfies CommandRunner)

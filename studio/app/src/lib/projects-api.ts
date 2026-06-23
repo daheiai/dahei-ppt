@@ -36,6 +36,21 @@ export interface ProjectDetail extends StudioProject {
   segments: SegmentSummary[];
 }
 
+export interface WorkflowActionResult {
+  ok: boolean;
+  stdout: string;
+  stderr: string;
+}
+
+export interface SegmentDetail {
+  id: string;
+  root: string;
+  productionPlanMarkdown: string | null;
+  productionPlan: { pages?: Array<Record<string, any>> } | null;
+  slidesHtml: string | null;
+  hasRenderHtml: boolean;
+}
+
 export function normalizeProjectsResponse(input: unknown): StudioProject[] {
   if (!input || typeof input !== "object" || !Array.isArray((input as { projects?: unknown }).projects)) {
     throw new Error("Invalid projects response.");
@@ -110,6 +125,38 @@ export async function createAnimationSegment(
   }
 
   return normalizeSegmentSummary(await response.json());
+}
+
+export async function fetchSegmentDetail(
+  projectId: string,
+  segmentId: string,
+  fetcher: typeof fetch = fetch
+): Promise<SegmentDetail> {
+  const response = await fetcher(
+    `/api/projects/${encodeURIComponent(projectId)}/segments/${encodeURIComponent(segmentId)}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to load segment: ${response.status}`);
+  }
+
+  return normalizeSegmentDetail(await response.json());
+}
+
+export async function generateHtmlForSegment(
+  projectId: string,
+  segmentId: string,
+  fetcher: typeof fetch = fetch
+): Promise<WorkflowActionResult> {
+  return runSegmentAction(projectId, segmentId, "generate-html", fetcher);
+}
+
+export async function renderSegment(
+  projectId: string,
+  segmentId: string,
+  fetcher: typeof fetch = fetch
+): Promise<WorkflowActionResult> {
+  return runSegmentAction(projectId, segmentId, "render", fetcher);
 }
 
 function normalizeProject(input: unknown): StudioProject {
@@ -191,6 +238,55 @@ function normalizeSegmentSummary(input: unknown): SegmentSummary {
     id,
     directoryName: typeof segment.directoryName === "string" ? segment.directoryName : id,
     root
+  };
+}
+
+function normalizeSegmentDetail(input: unknown): SegmentDetail {
+  if (!input || typeof input !== "object") {
+    throw new Error("Invalid segment detail.");
+  }
+
+  const segment = input as Record<string, unknown>;
+
+  if (typeof segment.id !== "string" || typeof segment.root !== "string") {
+    throw new Error("Invalid segment detail.");
+  }
+
+  return {
+    id: segment.id,
+    root: segment.root,
+    productionPlanMarkdown:
+      typeof segment.productionPlanMarkdown === "string" ? segment.productionPlanMarkdown : null,
+    productionPlan:
+      segment.productionPlan && typeof segment.productionPlan === "object"
+        ? (segment.productionPlan as SegmentDetail["productionPlan"])
+        : null,
+    slidesHtml: typeof segment.slidesHtml === "string" ? segment.slidesHtml : null,
+    hasRenderHtml: Boolean(segment.hasRenderHtml)
+  };
+}
+
+async function runSegmentAction(
+  projectId: string,
+  segmentId: string,
+  action: "generate-html" | "render",
+  fetcher: typeof fetch
+): Promise<WorkflowActionResult> {
+  const response = await fetcher(
+    `/api/projects/${encodeURIComponent(projectId)}/segments/${encodeURIComponent(segmentId)}/${action}`,
+    { method: "POST" }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to run segment action: ${response.status}`);
+  }
+
+  const body = (await response.json()) as Record<string, unknown>;
+
+  return {
+    ok: Boolean(body.ok),
+    stdout: typeof body.stdout === "string" ? body.stdout : "",
+    stderr: typeof body.stderr === "string" ? body.stderr : ""
   };
 }
 

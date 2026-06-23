@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { VisualRoutingEditor } from "./components/VisualRoutingEditor.js";
+import { HtmlPreview } from "./components/HtmlPreview.js";
+import { ProductionPlanView } from "./components/ProductionPlanView.js";
+import { RenderPanel } from "./components/RenderPanel.js";
 import {
   createAnimationSegment,
+  fetchSegmentDetail,
   fetchProjectDetail,
   fetchProjects,
+  generateHtmlForSegment,
+  renderSegment,
   saveVisualRouting,
   type ProjectDetail,
+  type SegmentDetail,
   type StudioProject,
   type VisualRoutingSegment
 } from "./lib/projects-api.js";
@@ -21,8 +28,10 @@ export function App() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectDetail, setProjectDetail] = useState<ProjectDetail | null>(null);
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+  const [segmentDetail, setSegmentDetail] = useState<SegmentDetail | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [actionStatus, setActionStatus] = useState("");
+  const [renderStatus, setRenderStatus] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -80,6 +89,31 @@ export function App() {
     };
   }, [selectedProjectId]);
 
+  useEffect(() => {
+    if (!projectDetail || !selectedSegmentId) {
+      setSegmentDetail(null);
+      return;
+    }
+
+    let active = true;
+
+    void fetchSegmentDetail(projectDetail.id, selectedSegmentId)
+      .then((detail) => {
+        if (active) {
+          setSegmentDetail(detail);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setSegmentDetail(null);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [projectDetail?.id, selectedSegmentId, projectDetail?.segments.length]);
+
   const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
   const scriptText = projectDetail?.script.trim() ? projectDetail.script : "暂无讲稿";
 
@@ -134,9 +168,47 @@ export function App() {
         ...projectDetail,
         segments: [...projectDetail.segments.filter((item) => item.id !== segment.id), segment]
       });
+      setSegmentDetail(await fetchSegmentDetail(projectDetail.id, segmentId));
       setActionStatus("动画片段已创建");
     } catch {
       setActionStatus("创建失败");
+    } finally {
+      setSaveState("idle");
+    }
+  }
+
+  async function generateSelectedHtml(): Promise<void> {
+    if (!projectDetail || !selectedSegmentId) {
+      return;
+    }
+
+    setSaveState("saving");
+    setRenderStatus("生成中");
+
+    try {
+      await generateHtmlForSegment(projectDetail.id, selectedSegmentId);
+      setSegmentDetail(await fetchSegmentDetail(projectDetail.id, selectedSegmentId));
+      setRenderStatus("HTML 已生成");
+    } catch {
+      setRenderStatus("HTML 生成失败");
+    } finally {
+      setSaveState("idle");
+    }
+  }
+
+  async function renderSelectedSegment(): Promise<void> {
+    if (!projectDetail || !selectedSegmentId) {
+      return;
+    }
+
+    setSaveState("saving");
+    setRenderStatus("渲染中");
+
+    try {
+      await renderSegment(projectDetail.id, selectedSegmentId);
+      setRenderStatus("MP4 已导出");
+    } catch {
+      setRenderStatus("MP4 渲染失败");
     } finally {
       setSaveState("idle");
     }
@@ -245,6 +317,17 @@ export function App() {
           saving={saveState === "saving"}
           selectedSegmentId={selectedSegmentId}
         />
+
+        <div className="production-grid">
+          <ProductionPlanView segmentDetail={segmentDetail} />
+          <HtmlPreview html={segmentDetail?.slidesHtml ?? null} />
+          <RenderPanel
+            busy={saveState === "saving"}
+            onGenerateHtml={() => void generateSelectedHtml()}
+            onRender={() => void renderSelectedSegment()}
+            status={renderStatus}
+          />
+        </div>
       </section>
     </main>
   );
