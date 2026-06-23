@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { renderHtmlPath } from "../../projects/project-paths.js";
 import { renderCommand, type RenderRunner } from "./render.js";
@@ -29,5 +29,23 @@ describe("renderCommand", () => {
         cwd: calls[0]!.cwd
       }
     ]);
+  });
+
+  it("passes an absolute output path when the segment path is relative", async () => {
+    const segmentRoot = join(tmpdir(), `dahei-ppt-render-relative-${Date.now()}`);
+    const relativeSegmentRoot = relative(process.cwd(), segmentRoot);
+    await mkdir(segmentRoot, { recursive: true });
+    await writeFile(renderHtmlPath(segmentRoot), "<!doctype html><html></html>", "utf8");
+    let outputArg = "";
+    const runner: RenderRunner = {
+      async run(_command, args) {
+        outputArg = args[args.indexOf("-o") + 1] ?? "";
+      }
+    };
+
+    await renderCommand(["--segment", relativeSegmentRoot], runner);
+
+    expect(isAbsolute(outputArg)).toBe(true);
+    expect(outputArg).toBe(join(segmentRoot, "exports", "render.mp4"));
   });
 });

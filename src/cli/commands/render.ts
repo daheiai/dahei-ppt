@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { access, copyFile, cp, mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { assetsPath, exportsPath, renderHtmlPath } from "../../projects/project-paths.js";
 import { requireOption } from "../args.js";
 
@@ -38,7 +38,7 @@ export async function renderCommand(
   args: string[] = [],
   runner: RenderRunner = defaultRunner
 ): Promise<RenderResult> {
-  const segmentRoot = requireOption(args, "--segment");
+  const segmentRoot = resolve(requireOption(args, "--segment"));
   const outputDirectory = exportsPath(segmentRoot);
   const outputPath = join(outputDirectory, "render.mp4");
   const renderEntryPath = renderHtmlPath(segmentRoot);
