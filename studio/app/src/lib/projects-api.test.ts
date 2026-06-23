@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  fetchAiSettings,
   fetchSegmentDetail,
   generateHtmlForSegment,
   normalizeProjectDetailResponse,
   normalizeProjectsResponse,
-  renderSegment
+  renderSegment,
+  saveAiSettings
 } from "./projects-api.js";
 
 describe("normalizeProjectsResponse", () => {
@@ -97,6 +99,38 @@ describe("normalizeProjectsResponse", () => {
       "GET /api/projects/sample/segments/segment_01",
       "POST /api/projects/sample/segments/segment_01/generate-html",
       "POST /api/projects/sample/segments/segment_01/render"
+    ]);
+  });
+
+  it("calls AI settings endpoints", async () => {
+    const settings = {
+      selectedProvider: "openai" as const,
+      providers: {
+        openai: {
+          baseUrl: "https://api.openai.com/v1",
+          apiKey: "",
+          hasApiKey: false,
+          model: "gpt-manual"
+        },
+        anthropic: {
+          baseUrl: "https://api.anthropic.com/v1",
+          apiKey: "",
+          hasApiKey: false,
+          model: "claude-manual"
+        }
+      }
+    };
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    const fetcher = async (url: string, init?: RequestInit) => {
+      calls.push({ url, init });
+      return jsonResponse(settings);
+    };
+
+    await expect(fetchAiSettings(fetcher as typeof fetch)).resolves.toEqual(settings);
+    await expect(saveAiSettings(settings, fetcher as typeof fetch)).resolves.toEqual(settings);
+    expect(calls.map((call) => `${call.init?.method ?? "GET"} ${call.url}`)).toEqual([
+      "GET /api/settings/ai",
+      "PUT /api/settings/ai"
     ]);
   });
 });

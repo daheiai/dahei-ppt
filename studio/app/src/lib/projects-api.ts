@@ -51,6 +51,20 @@ export interface SegmentDetail {
   hasRenderHtml: boolean;
 }
 
+export type AiProviderId = "openai" | "anthropic";
+
+export interface PublicAiProviderConfig {
+  baseUrl: string;
+  apiKey: string;
+  hasApiKey: boolean;
+  model: string;
+}
+
+export interface PublicAiSettings {
+  selectedProvider: AiProviderId;
+  providers: Record<AiProviderId, PublicAiProviderConfig>;
+}
+
 export function normalizeProjectsResponse(input: unknown): StudioProject[] {
   if (!input || typeof input !== "object" || !Array.isArray((input as { projects?: unknown }).projects)) {
     throw new Error("Invalid projects response.");
@@ -159,6 +173,33 @@ export async function renderSegment(
   return runSegmentAction(projectId, segmentId, "render", fetcher);
 }
 
+export async function fetchAiSettings(fetcher: typeof fetch = fetch): Promise<PublicAiSettings> {
+  const response = await fetcher("/api/settings/ai");
+
+  if (!response.ok) {
+    throw new Error(`Failed to load AI settings: ${response.status}`);
+  }
+
+  return normalizeAiSettings(await response.json());
+}
+
+export async function saveAiSettings(
+  settings: PublicAiSettings,
+  fetcher: typeof fetch = fetch
+): Promise<PublicAiSettings> {
+  const response = await fetcher("/api/settings/ai", {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(settings)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to save AI settings: ${response.status}`);
+  }
+
+  return normalizeAiSettings(await response.json());
+}
+
 function normalizeProject(input: unknown): StudioProject {
   if (!input || typeof input !== "object") {
     throw new Error("Invalid project item.");
@@ -264,6 +305,55 @@ function normalizeSegmentDetail(input: unknown): SegmentDetail {
     slidesHtml: typeof segment.slidesHtml === "string" ? segment.slidesHtml : null,
     hasRenderHtml: Boolean(segment.hasRenderHtml)
   };
+}
+
+function normalizeAiSettings(input: unknown): PublicAiSettings {
+  if (!input || typeof input !== "object") {
+    throw new Error("Invalid AI settings.");
+  }
+
+  const settings = input as Record<string, unknown>;
+  const providers = settings.providers as Record<string, unknown> | undefined;
+
+  if (!providers || typeof providers !== "object" || !isAiProviderId(settings.selectedProvider)) {
+    throw new Error("Invalid AI settings.");
+  }
+
+  return {
+    selectedProvider: settings.selectedProvider,
+    providers: {
+      openai: normalizeAiProvider(providers.openai),
+      anthropic: normalizeAiProvider(providers.anthropic)
+    }
+  };
+}
+
+function normalizeAiProvider(input: unknown): PublicAiProviderConfig {
+  if (!input || typeof input !== "object") {
+    throw new Error("Invalid AI provider settings.");
+  }
+
+  const provider = input as Record<string, unknown>;
+
+  if (
+    typeof provider.baseUrl !== "string" ||
+    typeof provider.apiKey !== "string" ||
+    typeof provider.hasApiKey !== "boolean" ||
+    typeof provider.model !== "string"
+  ) {
+    throw new Error("Invalid AI provider settings.");
+  }
+
+  return {
+    baseUrl: provider.baseUrl,
+    apiKey: provider.apiKey,
+    hasApiKey: provider.hasApiKey,
+    model: provider.model
+  };
+}
+
+function isAiProviderId(input: unknown): input is AiProviderId {
+  return input === "openai" || input === "anthropic";
 }
 
 async function runSegmentAction(

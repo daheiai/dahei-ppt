@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
+import { AiSettingsPanel } from "./components/AiSettingsPanel.js";
 import { VisualRoutingEditor } from "./components/VisualRoutingEditor.js";
 import { HtmlPreview } from "./components/HtmlPreview.js";
 import { ProductionPlanView } from "./components/ProductionPlanView.js";
 import { RenderPanel } from "./components/RenderPanel.js";
 import {
   createAnimationSegment,
+  fetchAiSettings,
   fetchSegmentDetail,
   fetchProjectDetail,
   fetchProjects,
   generateHtmlForSegment,
   renderSegment,
+  saveAiSettings,
   saveVisualRouting,
+  type PublicAiSettings,
   type ProjectDetail,
   type SegmentDetail,
   type StudioProject,
@@ -30,6 +34,8 @@ export function App() {
   const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
   const [segmentDetail, setSegmentDetail] = useState<SegmentDetail | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [aiSettings, setAiSettings] = useState<PublicAiSettings | null>(null);
+  const [aiSettingsStatus, setAiSettingsStatus] = useState("");
   const [actionStatus, setActionStatus] = useState("");
   const [renderStatus, setRenderStatus] = useState("");
 
@@ -49,6 +55,26 @@ export function App() {
       .catch(() => {
         if (active) {
           setLoadState("error");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    void fetchAiSettings()
+      .then((settings) => {
+        if (active) {
+          setAiSettings(settings);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setAiSettingsStatus("AI 设置读取失败");
         }
       });
 
@@ -214,6 +240,25 @@ export function App() {
     }
   }
 
+  async function persistAiSettings(): Promise<void> {
+    if (!aiSettings) {
+      return;
+    }
+
+    setSaveState("saving");
+    setAiSettingsStatus("保存中");
+
+    try {
+      const settings = await saveAiSettings(aiSettings);
+      setAiSettings(settings);
+      setAiSettingsStatus("已保存");
+    } catch {
+      setAiSettingsStatus("保存失败");
+    } finally {
+      setSaveState("idle");
+    }
+  }
+
   return (
     <main className="studio-shell">
       <aside className="project-rail">
@@ -247,6 +292,14 @@ export function App() {
             ))}
           </div>
         </section>
+
+        <AiSettingsPanel
+          onChange={setAiSettings}
+          onSave={() => void persistAiSettings()}
+          saving={saveState === "saving"}
+          settings={aiSettings}
+          status={aiSettingsStatus}
+        />
       </aside>
 
       <section className="workspace">

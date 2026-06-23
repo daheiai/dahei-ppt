@@ -9,6 +9,7 @@ export interface CommandRunner {
 
 export interface StudioContext {
   projectsDir: string;
+  settingsPath?: string;
   commandRunner: CommandRunner;
 }
 

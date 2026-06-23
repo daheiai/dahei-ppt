@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { handleAiSettingsRoute } from "./routes/ai-settings.js";
 import { handleProjectRoute } from "./routes/projects.js";
 import { handleSegmentRoute } from "./routes/segments.js";
 import { ApiError, type ApiResponse, type CommandRunner, type StudioContext } from "./types.js";
@@ -112,6 +113,7 @@ export async function handleStudioApiRequest(options: {
   context: StudioContext;
 }): Promise<ApiResponse> {
   return (
+    (await handleAiSettingsRoute(options.method, options.pathname, options.body, options.context)) ??
     (await handleProjectRoute(options.method, options.pathname, options.body, options.context)) ??
     (await handleSegmentRoute(options.method, options.pathname, options.body, options.context)) ?? {
       status: 404,
