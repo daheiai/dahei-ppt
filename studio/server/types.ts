@@ -7,9 +7,14 @@ export interface CommandRunner {
   run(args: string[]): Promise<CommandResult>;
 }
 
+export interface AiVisualRoutingPlanner {
+  plan(script: string): Promise<import("../../src/schema/index.js").VisualRoutingPlan>;
+}
+
 export interface StudioContext {
   projectsDir: string;
   settingsPath?: string;
+  aiVisualRoutingPlanner?: AiVisualRoutingPlanner;
   commandRunner: CommandRunner;
 }
 

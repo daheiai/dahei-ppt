@@ -36,6 +36,12 @@ export interface ProjectDetail extends StudioProject {
   segments: SegmentSummary[];
 }
 
+export interface ImportScriptProjectInput {
+  id: string;
+  title: string;
+  script: string;
+}
+
 export interface WorkflowActionResult {
   ok: boolean;
   stdout: string;
@@ -100,6 +106,24 @@ export async function fetchProjectDetail(projectId: string, fetcher: typeof fetc
 
   if (!response.ok) {
     throw new Error(`Failed to load project: ${response.status}`);
+  }
+
+  return normalizeProjectDetailResponse(await response.json());
+}
+
+export async function importScriptProject(
+  input: ImportScriptProjectInput,
+  fetcher: typeof fetch = fetch
+): Promise<ProjectDetail> {
+  const response = await fetcher("/api/projects/import-script", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input)
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(typeof body.error === "string" ? body.error : `Failed to import script: ${response.status}`);
   }
 
   return normalizeProjectDetailResponse(await response.json());

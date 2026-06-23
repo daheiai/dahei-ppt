@@ -46,6 +46,21 @@ export async function handleProjectRoute(
     return { status: 201, body: { id, title, root: project.root } };
   }
 
+  if (pathname === "/api/projects/import-script" && method === "POST") {
+    const payload = assertRecord(body, "request body");
+    const id = safePathPart(requireStringField(payload, "id"), "id");
+    const title = typeof payload.title === "string" && payload.title.trim() ? payload.title : id;
+    const script = requireStringField(payload, "script");
+    const project = await createProject({ projectsDir: context.projectsDir, id, title });
+    const visualRouting = await requireAiPlanner(context).plan(script);
+
+    await writeScript(project.root, script);
+    await writeVisualRouting(project.root, visualRouting);
+    await writeFile(visualRoutingMarkdownPath(project.root), formatVisualRoutingMarkdown(visualRouting), "utf8");
+
+    return { status: 201, body: await readProjectDetail(context.projectsDir, id) };
+  }
+
   const scriptMatch = pathname.match(/^\/api\/projects\/([^/]+)\/script$/);
   if (scriptMatch && method === "PUT") {
     const projectRoot = resolveProjectRoot(context.projectsDir, scriptMatch[1]!);
@@ -74,6 +89,14 @@ export async function handleProjectRoute(
   }
 
   return undefined;
+}
+
+function requireAiPlanner(context: StudioContext) {
+  if (!context.aiVisualRoutingPlanner) {
+    throw new ApiError(500, "AI visual routing planner is not configured.");
+  }
+
+  return context.aiVisualRoutingPlanner;
 }
 
 function resolveProjectRoot(projectsDir: string, rawProjectId: string): string {

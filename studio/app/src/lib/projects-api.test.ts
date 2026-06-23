@@ -3,6 +3,7 @@ import {
   fetchAiSettings,
   fetchSegmentDetail,
   generateHtmlForSegment,
+  importScriptProject,
   normalizeProjectDetailResponse,
   normalizeProjectsResponse,
   renderSegment,
@@ -132,6 +133,42 @@ describe("normalizeProjectsResponse", () => {
       "GET /api/settings/ai",
       "PUT /api/settings/ai"
     ]);
+  });
+
+  it("imports pasted scripts through the Studio API", async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    const fetcher = async (url: string, init?: RequestInit) => {
+      calls.push({ url, init });
+      return jsonResponse({
+        id: "new-video",
+        title: "New Video",
+        root: "/tmp/new-video",
+        script: "完整文案。",
+        visualRouting: null,
+        segments: []
+      });
+    };
+
+    await expect(
+      importScriptProject(
+        {
+          id: "new-video",
+          title: "New Video",
+          script: "完整文案。"
+        },
+        fetcher as typeof fetch
+      )
+    ).resolves.toMatchObject({
+      id: "new-video",
+      script: "完整文案。"
+    });
+
+    expect(calls[0]).toMatchObject({
+      url: "/api/projects/import-script",
+      init: {
+        method: "POST"
+      }
+    });
   });
 });
 

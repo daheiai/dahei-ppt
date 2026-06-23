@@ -291,16 +291,40 @@ button {
 }
 
 .compact-field input,
-.compact-field select {
+.compact-field select,
+.compact-field textarea {
   width: 100%;
-  min-height: 36px;
-  padding: 0 9px;
   border: 1px solid #d7cec0;
   border-radius: 8px;
   background: #fffaf0;
   color: #1d1b18;
   font: inherit;
   font-size: 13px;
+}
+
+.compact-field input,
+.compact-field select {
+  min-height: 36px;
+  padding: 0 9px;
+}
+
+.compact-field textarea {
+  min-height: 156px;
+  padding: 10px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.import-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.4fr) minmax(240px, 0.6fr) minmax(0, 1.2fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 14px;
+}
+
+.import-script-field {
+  grid-row: span 2;
 }
 
 .routing-grid {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AiSettingsPanel } from "./components/AiSettingsPanel.js";
+import { ScriptImportPanel } from "./components/ScriptImportPanel.js";
 import { VisualRoutingEditor } from "./components/VisualRoutingEditor.js";
 import { HtmlPreview } from "./components/HtmlPreview.js";
 import { ProductionPlanView } from "./components/ProductionPlanView.js";
@@ -10,6 +11,7 @@ import {
   fetchSegmentDetail,
   fetchProjectDetail,
   fetchProjects,
+  importScriptProject,
   generateHtmlForSegment,
   renderSegment,
   saveAiSettings,
@@ -36,22 +38,17 @@ export function App() {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [aiSettings, setAiSettings] = useState<PublicAiSettings | null>(null);
   const [aiSettingsStatus, setAiSettingsStatus] = useState("");
+  const [importId, setImportId] = useState("");
+  const [importTitle, setImportTitle] = useState("");
+  const [importScript, setImportScript] = useState("");
+  const [importStatus, setImportStatus] = useState("");
   const [actionStatus, setActionStatus] = useState("");
   const [renderStatus, setRenderStatus] = useState("");
 
   useEffect(() => {
     let active = true;
 
-    void fetchProjects()
-      .then((nextProjects) => {
-        if (!active) {
-          return;
-        }
-
-        setProjects(nextProjects);
-        setSelectedProjectId(nextProjects[0]?.id ?? null);
-        setLoadState("ready");
-      })
+    void loadProjects()
       .catch(() => {
         if (active) {
           setLoadState("error");
@@ -62,6 +59,14 @@ export function App() {
       active = false;
     };
   }, []);
+
+  async function loadProjects(nextSelectedId?: string): Promise<StudioProject[]> {
+    const nextProjects = await fetchProjects();
+    setProjects(nextProjects);
+    setSelectedProjectId(nextSelectedId ?? nextProjects[0]?.id ?? null);
+    setLoadState("ready");
+    return nextProjects;
+  }
 
   useEffect(() => {
     let active = true;
@@ -259,6 +264,28 @@ export function App() {
     }
   }
 
+  async function handleImportScript(): Promise<void> {
+    setSaveState("saving");
+    setImportStatus("生成视觉分区中");
+
+    try {
+      const detail = await importScriptProject({
+        id: importId,
+        title: importTitle || importId,
+        script: importScript
+      });
+      await loadProjects(detail.id);
+      setProjectDetail(detail);
+      setSelectedSegmentId(detail.visualRouting?.segments[0]?.id ?? null);
+      setImportScript("");
+      setImportStatus("已导入");
+    } catch (error) {
+      setImportStatus(error instanceof Error ? error.message : "导入失败");
+    } finally {
+      setSaveState("idle");
+    }
+  }
+
   return (
     <main className="studio-shell">
       <aside className="project-rail">
@@ -310,6 +337,18 @@ export function App() {
           </div>
           <div className="format-pill">3840 × 2560 · 60fps</div>
         </div>
+
+        <ScriptImportPanel
+          busy={saveState === "saving"}
+          id={importId}
+          onIdChange={setImportId}
+          onImport={() => void handleImportScript()}
+          onScriptChange={setImportScript}
+          onTitleChange={setImportTitle}
+          script={importScript}
+          status={importStatus}
+          title={importTitle}
+        />
 
         <div className="work-grid">
           <section className="panel script-panel" aria-labelledby="script-panel-title">

@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { visualRoutingYamlPath } from "../../src/projects/project-paths.js";
+import { parseVisualRouting } from "../../src/schema/index.js";
 import { handleStudioApiRequest, type CommandRunner } from "./index.js";
 import type { StudioContext } from "./types.js";
 
@@ -113,6 +114,34 @@ describe("studio local api", () => {
       slidesHtml: null
     });
   });
+
+  it("imports a pasted script and creates visual routing through the AI planner", async () => {
+    const projectsDir = join(tmpdir(), `dahei-ppt-studio-import-${Date.now()}`);
+    const context = createTestContext(projectsDir);
+    context.aiVisualRoutingPlanner = {
+      async plan(script) {
+        expect(script).toBe("完整文案。");
+        return sampleRoutingPlan();
+      }
+    };
+
+    const imported = await requestJson(context, "/api/projects/import-script", {
+      method: "POST",
+      body: {
+        id: "new-video",
+        title: "New Video",
+        script: "完整文案。"
+      }
+    });
+
+    expect(imported).toMatchObject({
+      id: "new-video",
+      title: "New Video",
+      script: "完整文案。",
+      visualRouting: sampleRoutingPlan()
+    });
+    expect(await readFile(join(projectsDir, "new-video", "script.md"), "utf8")).toBe("完整文案。");
+  });
 });
 
 async function requestJson(
@@ -153,7 +182,7 @@ function createTestContext(projectsDir: string, commandRunner?: CommandRunner): 
 }
 
 function sampleRoutingPlan() {
-  return {
+  return parseVisualRouting({
     segments: [
       {
         id: "segment_01",
@@ -167,5 +196,5 @@ function sampleRoutingPlan() {
         user_status: "accepted"
       }
     ]
-  };
+  });
 }

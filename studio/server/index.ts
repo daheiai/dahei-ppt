@@ -1,9 +1,12 @@
 import { spawn } from "node:child_process";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { planVisualRoutingWithAi } from "./ai/visual-routing-ai-planner.js";
 import { handleAiSettingsRoute } from "./routes/ai-settings.js";
 import { handleProjectRoute } from "./routes/projects.js";
 import { handleSegmentRoute } from "./routes/segments.js";
+import { readAiSettings } from "./settings/ai-settings.js";
 import { ApiError, type ApiResponse, type CommandRunner, type StudioContext } from "./types.js";
 
 export type { CommandRunner } from "./types.js";
@@ -22,8 +25,15 @@ export interface StudioServer {
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 export async function createStudioServer(options: CreateStudioServerOptions = {}): Promise<StudioServer> {
+  const settingsPath = join("studio", "local", "ai-settings.yaml");
   const context: StudioContext = {
     projectsDir: options.projectsDir ?? "studio/projects",
+    settingsPath,
+    aiVisualRoutingPlanner: {
+      async plan(script) {
+        return planVisualRoutingWithAi(script, await readAiSettings(settingsPath));
+      }
+    },
     commandRunner: options.commandRunner ?? createDefaultCommandRunner()
   };
   const server = createServer((request, response) => {
