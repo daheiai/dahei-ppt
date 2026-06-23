@@ -34,11 +34,11 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<Cl
     }
 
     if (command === "plan-routing") {
-      await planRoutingCommand(commandArgs);
+      const result = await planRoutingCommand(commandArgs);
 
       return {
         exitCode: 0,
-        stdout: "",
+        stdout: `Created visual routing plan: ${result.yamlPath}\n`,
         stderr: ""
       };
     }
