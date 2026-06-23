@@ -37,7 +37,8 @@ async function callOpenAi(
   user: string,
   fetcher: FetchLike
 ): Promise<string> {
-  const response = await fetcher(`${trimTrailingSlash(baseUrl)}/chat/completions`, {
+  const endpoint = `${trimTrailingSlash(baseUrl)}/chat/completions`;
+  const response = await fetcher(endpoint, {
     method: "POST",
     headers: {
       authorization: `Bearer ${apiKey}`,
@@ -64,7 +65,7 @@ async function callOpenAi(
   const body = (await response.json()) as any;
 
   if (!response.ok) {
-    throw new ApiError(response.status, body?.error?.message ?? "OpenAI request failed.");
+    throw upstreamApiError("openai", model, endpoint, response.status, body?.error?.message ?? "OpenAI request failed.");
   }
 
   const content = body?.choices?.[0]?.message?.content;
@@ -84,7 +85,8 @@ async function callAnthropic(
   user: string,
   fetcher: FetchLike
 ): Promise<string> {
-  const response = await fetcher(`${trimTrailingSlash(baseUrl)}/messages`, {
+  const endpoint = `${trimTrailingSlash(baseUrl)}/messages`;
+  const response = await fetcher(endpoint, {
     method: "POST",
     headers: {
       "anthropic-version": "2023-06-01",
@@ -103,7 +105,13 @@ async function callAnthropic(
   const body = (await response.json()) as any;
 
   if (!response.ok) {
-    throw new ApiError(response.status, body?.error?.message ?? "Anthropic request failed.");
+    throw upstreamApiError(
+      "anthropic",
+      model,
+      endpoint,
+      response.status,
+      body?.error?.message ?? "Anthropic request failed."
+    );
   }
 
   const text = body?.content?.find((part: any) => part?.type === "text")?.text;
@@ -123,4 +131,8 @@ function parseJsonObject(text: string): unknown {
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");
+}
+
+function upstreamApiError(provider: string, model: string, endpoint: string, status: number, message: string): ApiError {
+  return new ApiError(status, `[${provider} ${model} @ ${endpoint}] ${status}: ${message}`);
 }

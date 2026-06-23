@@ -52,9 +52,9 @@ export async function handleProjectRoute(
     const title = typeof payload.title === "string" && payload.title.trim() ? payload.title : id;
     const script = requireStringField(payload, "script");
     const project = await createProject({ projectsDir: context.projectsDir, id, title });
-    const visualRouting = await requireAiPlanner(context).plan(script);
 
     await writeScript(project.root, script);
+    const visualRouting = await requireAiPlanner(context).plan(script);
     await writeVisualRouting(project.root, visualRouting);
     await writeFile(visualRoutingMarkdownPath(project.root), formatVisualRoutingMarkdown(visualRouting), "utf8");
 

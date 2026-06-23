@@ -89,7 +89,7 @@ describe("AI settings api", () => {
 function createTestContext(settingsPath?: string): StudioContext {
   return {
     projectsDir: join(tmpdir(), `dahei-ppt-projects-${Date.now()}`),
-    settingsPath,
+    settingsPath: settingsPath ?? join(tmpdir(), `dahei-ppt-ai-settings-default-${Date.now()}`, "ai-settings.yaml"),
     commandRunner: {
       async run() {
         return { stdout: "", stderr: "" };

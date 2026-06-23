@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { visualRoutingYamlPath } from "../../src/projects/project-paths.js";
 import { parseVisualRouting } from "../../src/schema/index.js";
 import { handleStudioApiRequest, type CommandRunner } from "./index.js";
-import type { StudioContext } from "./types.js";
+import { ApiError, type StudioContext } from "./types.js";
 
 describe("studio local api", () => {
   it("creates projects and persists script plus visual routing edits", async () => {
@@ -141,6 +141,29 @@ describe("studio local api", () => {
       visualRouting: sampleRoutingPlan()
     });
     expect(await readFile(join(projectsDir, "new-video", "script.md"), "utf8")).toBe("完整文案。");
+  });
+
+  it("persists the pasted script before returning AI planner errors", async () => {
+    const projectsDir = join(tmpdir(), `dahei-ppt-studio-import-fail-${Date.now()}`);
+    const context = createTestContext(projectsDir);
+    context.aiVisualRoutingPlanner = {
+      async plan() {
+        throw new ApiError(502, "upstream failed");
+      }
+    };
+
+    await expect(
+      requestJson(context, "/api/projects/import-script", {
+        method: "POST",
+        body: {
+          id: "new-video",
+          title: "New Video",
+          script: "这段文案需要先保存。"
+        }
+      })
+    ).rejects.toThrow("upstream failed");
+
+    expect(await readFile(join(projectsDir, "new-video", "script.md"), "utf8")).toBe("这段文案需要先保存。");
   });
 });
 
