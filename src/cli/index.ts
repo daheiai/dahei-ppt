@@ -44,11 +44,11 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<Cl
     }
 
     if (command === "create-segment") {
-      await createSegmentCommand(commandArgs);
+      const result = await createSegmentCommand(commandArgs);
 
       return {
         exitCode: 0,
-        stdout: "",
+        stdout: `Created animation segment: ${result.segmentRoot}\n`,
         stderr: ""
       };
     }
