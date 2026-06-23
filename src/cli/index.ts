@@ -54,11 +54,11 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<Cl
     }
 
     if (command === "generate-html") {
-      await generateHtmlCommand(commandArgs);
+      const result = await generateHtmlCommand(commandArgs);
 
       return {
         exitCode: 0,
-        stdout: "",
+        stdout: `Created slides HTML: ${result.slidesHtmlPath}\n`,
         stderr: ""
       };
     }

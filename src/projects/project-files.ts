@@ -90,3 +90,8 @@ export async function writeProductionPlan(
   const parsed = parseProductionPlan(productionPlan);
   await writeFile(productionPlanYamlPath(segmentRoot), YAML.stringify(parsed), "utf8");
 }
+
+export async function readProductionPlan(segmentRoot: string): Promise<ProductionPlan> {
+  const raw = await readFile(productionPlanYamlPath(segmentRoot), "utf8");
+  return parseProductionPlan(YAML.parse(raw));
+}
